@@ -2,7 +2,7 @@
 
 ### Goal
 
-The goal of this project is to find the lanes on a lane from a video using computer vision techniques.
+The goal of this project is to find the lanes on a road from a video using computer vision techniques.
 
 ### Technical Approach
 
@@ -21,58 +21,85 @@ The technical approach for this project consists of the following steps:
 
 #### Camera Calibration
 
-#### 1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
-
 The code for this step is contained in the first code cell of the IPython notebook located in "./P2.ipynb".  
 
 I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
 
-I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result: 
+I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained the following result: 
 
-![Undis][image1]
+|                    Distorted Test Image                     |                   Undistorted Test Image                    |
+| :---------------------------------------------------------: | :---------------------------------------------------------: |
+| ![Distorted Test Image](./camera_cal/test/calibration1.jpg) | ![Undistorted Test Image](./camera_cal/test/calibrated.jpg) |
 
-### Pipeline (single images)
 
-#### 1. Provide an example of a distortion-corrected image.
 
-To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
-![alt text][image2]
+#### Pipeline (single images)
 
-#### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
+##### 1. Distortion-corrected image.
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+I obtained the camera matrix and the distortion coefficients from the calibration step as shown above. Then I applied those to the test image using `cv2.undistort()`and obtained the following result:
 
-![alt text][image3]
+|                    Raw Image                    |                      Undistorted Image                       |
+| :---------------------------------------------: | :----------------------------------------------------------: |
+| ![Raw Image](./test_images/straight_lines1.jpg) | ![Undistorted Image](./test_images/straight_lines1_undist.jpg) |
 
-#### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
+##### 2. Color and Gradient Thresholding
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+I used a combination of color and gradient thresholds to generate a binary image.  The code can be found after the cell titled **Color and Gradient Thresholding** in the IPython notebook.  Here's an example of my output for this step.
 
-```python
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
-```
 
-This resulted in the following source and destination points:
 
-| Source        | Destination   |
-|:-------------:|:-------------:|
-| 585, 460      | 320, 0        |
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
+|                     Before Thresholding                      |                      After Thresholding                      |
+| :----------------------------------------------------------: | :----------------------------------------------------------: |
+| ![Before thresholding](./output_images/image_unwarped_color.jpg) | ![After thresholding](./output_images/image_unwarped_binary.jpg) |
 
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
+##### 
 
-![alt text][image4]
+##### 3. Perspective Transform
+
+The code for my perspective transform can be found after the cell titled **Perspective Transform**. I use the test image "test_images/straight_lines1.jpg" for the perspective transform. 
+
+I select the source points as
+
+> p1 = [220, 710]
+> p2 = [525, 500]
+> p3 = [760, 500]
+> p4 = [1080, 710]
+
+by making sure that the points lie on the lane markings.
+
+I choose the destination points as
+
+> q1 = [220, 710]
+> q2 = [220, 500]
+> q3 = [1080, 500]
+> q4 = [1080, 710]
+
+
+
+However, when I perform the perspective transform, the lane markings look don't look as expected. The lines are not straight. In addition part of the lines look  look blurry. 
+
+Any idea what I am doing wrong?
+
+Showing the images before and after the perspective transform with the colored image for easy debugging. I have added the points in `p1` with "red plus" (r+) signs.
+
+
+
+![Before transform](./output_images/debug1.png)
+
+
+
+When I apply the perspective transform on the binary images, they look like this.
+
+
+
+![Before transform](./output_images/debug3.png)
+
+**Stopped at this point for review feedback**
+
+---
+
+
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
