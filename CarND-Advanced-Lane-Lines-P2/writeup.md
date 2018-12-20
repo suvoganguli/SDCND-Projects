@@ -75,25 +75,19 @@ I choose the destination points as
 > q3 = [1080, 500]
 > q4 = [1080, 710]
 
+I perform the perspective transform using the function `cv2.warpPerspective()`.
 
+The images before and after transform (both color and binary) are shown below. I have added the points `p1, p2, p3, p4` and `q1, q2, q3, q4` with "red plus" (r+) signs on the left and right images.
 
-However, when I perform the perspective transform, the lane markings look don't look as expected. The lines are not straight. In addition part of the lines look  look blurry. 
-
-Any idea what I am doing wrong?
-
-Showing the images before and after the perspective transform with the colored image for easy debugging. I have added the points in `p1` with "red plus" (r+) signs.
-
-
-
-![Before transform](./output_images/debug1.png)
+**Comment:** In the transformed images the lane markings look blurry and distorted toward the top. This may be expected, but need to confirm from review feedback or Student Hub feedback. 
 
 
 
-When I apply the perspective transform on the binary images, they look like this.
+![Before transform](./output_images/transform_color.png)
 
 
 
-![Before transform](./output_images/debug3.png)
+![Before transform](./output_images/transform_binary.png)
 
 **Stopped at this point for review feedback**
 
@@ -101,13 +95,27 @@ When I apply the perspective transform on the binary images, they look like this
 
 
 
-#### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+##### 4. Lane-Line Pixels
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+I identified the lane-line pixels by:
 
-![alt text][image5]
+- Taking the histogram of the bottom half of the image;
+- Finding the peaks of the histogram in the left half and right half of the histogram;
+- Defining window of half-width = 100 pixel and height of 1/9 of the total height of the image and centered around the left and right half histogram centers, and based on the bottom of the image; 
+- Finding the non-zero pixels in the left and right windows and appending them in two arrays;
+- Averaging the x-coordinate of the non-zero pixels in the left and right window if the number of pixels is greater than 50;
+- Sliding up the window by 1/9th of the image height and re-centered if necessary as determined by the previous step;
+- Fitting a 2nd order polynomial to the non-zero pixels collected after the window slides up from the bottom of the image to the top of the image. 
 
-#### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
+The code can be found just after the cell titled **Finding Lane-Line Pixels**.
+
+The output of this process is shown below:
+
+![Binary Warped Polyfit Image](./output_images/binary_warped_polyfit.jpg)
+
+
+
+##### 5. Radius of Curvature
 
 I did this in lines # through # in my code in `my_other_file.py`
 
