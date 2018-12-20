@@ -89,10 +89,6 @@ The images before and after transform (both color and binary) are shown below. I
 
 ![Before transform](./output_images/transform_binary.png)
 
-**Stopped at this point for review feedback**
-
----
-
 
 
 ##### 4. Lane-Line Pixels
@@ -111,13 +107,25 @@ The code can be found just after the cell titled **Finding Lane-Line Pixels**.
 
 The output of this process is shown below:
 
-![Binary Warped Polyfit Image](./output_images/binary_warped_polyfit.jpg)
+![Binary Warped Polyfit Image](./output_images/binary_warped_polyfit.png)
 
 
 
 ##### 5. Radius of Curvature
 
-I did this in lines # through # in my code in `my_other_file.py`
+I found the radius of curvature for the polynomial `f(y) = A*y**2 + B*y + C ` using:
+
+![Radius Formula](./misc_images/RadiusFormula.png)
+
+I decided to calculate the radius of curvature for the left and right lane-lines for a curved road ("./test_images/test2.jpg"). The undistorted image and the 2nd order polynomial fits for the lane-lines are shown in the left and right images below.
+
+![Radius for Curved Road](./output_images/binary_warped_polyfit_curvedroad.png)
+
+The radius calculations show that the left and right radii (in pixel) are: `975.7` and `815.1.`
+
+The relevant code can be found just after the cell titled **Radius of Curvature**.
+
+
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
