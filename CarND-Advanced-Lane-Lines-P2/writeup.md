@@ -129,22 +129,42 @@ The relevant code can be found just after the cell titled **Radius of Curvature*
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+I implemented this step in the cell just after the one titled **Projection Back to Lane Image**. The function I created is `draw_line()`.  Here is an example of my result on a test image:
 
-![alt text][image6]
+![Projection Back](./output_images/projection_back.png)
 
 ---
 
 ### Pipeline (video)
 
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
+Here's a [link to my video result](./output_video/project_video_out.mp4). The video file is located at "./output_video/project_video_out.mp4".
 
-Here's a [link to my video result](./project_video.mp4)
+
 
 ---
 
 ### Discussion
 
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+The current pipeline can fail in the following situations:
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+- Car headlights shining on a wet road coming from opposite direction.
+- Fog
+- Snow
+- A car close to the ego vehicle
+
+My current implementation of the function `draw_line()` used to draw the red lines on the video is not rubust. In the code I am doing the following:
+
+1. Created an empty array corresponding to the top-down image
+
+2. Adding 255 to the red layer at pixels corresponding to the points in the left and the right polynomial fits
+
+3. Projecting the image back to the front view
+
+4. Finding pixels in the red layer which are of value > 255 by searching over the entire image
+5. Creating a wider band of red pixels around the thin lines obtained from Step 5
+6. Merging the above image with the original image from the front view
+
+The problem is with step 5. If there is an object colored red, for e.g., the tail lights of a car in view, then those pixels will also be painted.
+
+To the reviewer: Can you please provide a sample code which draws the lane-lines in a more robust way? Thanks.
+
