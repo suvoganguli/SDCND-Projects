@@ -129,7 +129,18 @@ The relevant code can be found just after the cell titled **Radius of Curvature*
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in the cell just after the one titled **Projection Back to Lane Image**. The function I created is `draw_line()`.  Here is an example of my result on a test image:
+I implemented this step in the cell just after the one titled **Projection Back to Lane Image**. The function I created for this is `draw_line()`.  
+
+My current implementation of the function `draw_line()` used to draw the red lines on the video uses the following steps:
+
+1. Create an empty array corresponding to the top-down image;
+2. Add 255 to the red layer at pixels corresponding to the points in the left and the right polynomial fits;
+3. Project the image back to the front view;
+4. Find pixels in the red layer which are of value > 100 by searching over the set of indices;
+5. Create a wider band of red pixels around the thin lines obtained from Step 5; and
+6. Merge the above image with the original image from the front view;
+
+Here is an example of my result on a test image:
 
 ![Projection Back](./output_images/projection_back.png)
 
@@ -147,24 +158,16 @@ Here's a [link to my video result](./output_video/project_video_out.mp4). The vi
 
 The current pipeline can fail in the following situations:
 
-- Car headlights shining on a wet road coming from opposite direction.
+- Car headlights shining on a wet road coming from opposite direction during night
 - Fog
 - Snow
-- A car close to the ego vehicle
+- A car in front close to the ego vehicle
+- Sharp turn
+- If the road in the view used for image processing is shaped like a 'S'
 
-My current implementation of the function `draw_line()` used to draw the red lines on the video is not rubust. In the code I am doing the following:
+---
 
-1. Created an empty array corresponding to the top-down image
 
-2. Adding 255 to the red layer at pixels corresponding to the points in the left and the right polynomial fits
 
-3. Projecting the image back to the front view
-
-4. Finding pixels in the red layer which are of value > 255 by searching over the entire image
-5. Creating a wider band of red pixels around the thin lines obtained from Step 5
-6. Merging the above image with the original image from the front view
-
-The problem is with step 5. If there is an object colored red, for e.g., the tail lights of a car in view, then those pixels will also be painted.
-
-To the reviewer: Can you please provide a sample code which draws the lane-lines in a more robust way? Thanks.
+ 
 
