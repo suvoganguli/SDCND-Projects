@@ -136,7 +136,7 @@ My current implementation of the function `draw_line()` used to draw the red lin
 1. Create an empty array corresponding to the top-down image;
 2. Add 255 to the red layer at pixels corresponding to the points in the left and the right polynomial fits;
 3. Project the image back to the front view;
-4. Find pixels in the red layer which are of value > 100 by searching over the set of indices;
+4. Find pixels in the red layer which are of value > 0.5 by searching over the set of indices;
 5. Create a wider band of red pixels around the thin lines obtained from Step 5; and
 6. Merge the above image with the original image from the front view;
 
