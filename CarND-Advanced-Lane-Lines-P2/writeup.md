@@ -156,7 +156,7 @@ Here's a [link to my video result](./output_video/project_video_out.mp4). The vi
 
 ### Discussion
 
-The current pipeline can fail in the following situations:
+The algorithm is run for the video file called `project_video.mp4`. In this case, the processed video looks satisfactory. But the hyper-parameters are tuned for this specific video.  The current pipeline can fail in the following situations:
 
 - Car headlights shining on a wet road coming from opposite direction during night
 - Fog
@@ -164,10 +164,6 @@ The current pipeline can fail in the following situations:
 - A car in front close to the ego vehicle
 - Sharp turn
 - If the road in the view used for image processing is shaped like a 'S'
-
-
-
-The algorithm can be improved by maintaining a history of the lane marking information obtained in previous time steps. This can be used to make the algorithm robust to sudden change in a particular frame. 
 
 ---
 
