@@ -165,6 +165,10 @@ The current pipeline can fail in the following situations:
 - Sharp turn
 - If the road in the view used for image processing is shaped like a 'S'
 
+
+
+The algorithm can be improved by maintaining a history of the lane marking information obtained in previous time steps. This can be used to make the algorithm robust to sudden change in a particular frame. 
+
 ---
 
 
