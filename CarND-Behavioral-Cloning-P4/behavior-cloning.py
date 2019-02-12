@@ -9,60 +9,76 @@ from keras.layers.pooling import MaxPooling2D
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras import optimizers
 from PIL import Image
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+import sklearn
+from random import shuffle
 
-# load center, left and right images
-i = 0
-images = []
-measurements = []
+# create samples
+samples = []
 with open('./data/run2/driving_log.csv') as csvfile:
     reader = csv.reader(csvfile)
-    for row in reader:
-        
-        source_path = row[0]
-        filename = source_path.split('/')[-1]
-        filename_center = '../data/run2/IMG/' + filename
-        
-        source_path = row[1]
-        filename = source_path.split('/')[-1]
-        filename_left = '../data/run2/IMG/' + filename        
-        
-        source_path = row[2]
-        filename = source_path.split('/')[-1]
-        filename_right = '../data/run2/IMG/' + filename        
-        
-        steering_center = float(row[3])
-        
-        # create adjusted steering measurements for the side camera images
-        correction = 0.25 # this is a parameter to tune
-        steering_left = steering_center + correction
-        steering_right = steering_center - correction
+    for line in reader:
+        samples.append(line)
 
-        # read in images from center, left and right cameras
-        img_center = np.asarray(Image.open(filename_center))
-        img_left = np.asarray(Image.open(filename_left))
-        img_right = np.asarray(Image.open(filename_right))
+train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
-        # add images and angles to data set
-        images.extend([img_center, img_left, img_right])
-        measurements.extend([steering_center, steering_left, steering_right])
+# load center, left and right images
+def generator(samples, batch_size=32):
+    num_samples = len(samples)
+    while 1: # Loop forever so the generator never terminates
+        shuffle(samples)
+        for offset in range(0, num_samples, batch_size):
+            batch_samples = samples[offset:offset+batch_size]
+            images = []
+            measurements = []            
+            for batch_sample in batch_samples:
+    
+                source_path = batch_sample[0]
+                filename = source_path.split('/')[-1]
+                filename_center = './data/run2/IMG/' + filename
 
-        if i%200 == 0:
-            print('processing row = ' + str(i))
-        i+=1
-        
-# augment data by flipping image    
-augmented_images, augmented_measurements  = [], []
-for image, measurement in zip(images, measurements):
-    augmented_images.append(image)
-    augmented_measurements.append(measurement)
-    augmented_images.append(cv2.flip(image,1))
-    augmented_measurements.append(measurement*(-1.0))
+                source_path = batch_sample[1]
+                filename = source_path.split('/')[-1]
+                filename_left = './data/run2/IMG/' + filename        
 
-# create training data
-X_train = np.array(augmented_images)
-y_train = np.array(augmented_measurements)
+                source_path = batch_sample[2]
+                filename = source_path.split('/')[-1]
+                filename_right = './data/run2/IMG/' + filename        
 
+                steering_center = float(batch_sample[3])
+
+                # create adjusted steering measurements for the side camera images
+                correction = 0.25 # this is a parameter to tune
+                steering_left = steering_center + correction
+                steering_right = steering_center - correction
+
+                # read in images from center, left and right cameras
+                img_center = np.asarray(Image.open(filename_center))
+                img_left = np.asarray(Image.open(filename_left))
+                img_right = np.asarray(Image.open(filename_right))
+
+                # add images and angles to data set
+                images.extend([img_center, img_left, img_right])
+                measurements.extend([steering_center, steering_left, steering_right])
+                
+                # augment data by flipping image    
+            augmented_images, augmented_measurements  = [], []
+            for image, measurement in zip(images, measurements):
+                augmented_images.append(image)
+                augmented_measurements.append(measurement)
+                augmented_images.append(cv2.flip(image,1))
+                augmented_measurements.append(measurement*(-1.0))
+
+            # create training data
+            X_train = np.array(augmented_images)
+            y_train = np.array(augmented_measurements)
+            yield sklearn.utils.shuffle(X_train, y_train)
+            
+# compile and train the model using the generator function
+train_generator = generator(train_samples, batch_size=32)
+validation_generator = generator(validation_samples, batch_size=32)            
+            
 # model choice
 # CHOICE = 0: basic network to see if the network can
 #             create a model which can run with the sim
@@ -118,15 +134,12 @@ if CHOICE == 1:
 # add option to select tuning parameters
 adam = optimizers.Adam(lr=0.001, beta_1=0.9)
 model.compile(loss='mse', optimizer=adam)
-
-# add callbacks for saving best model and early stopping
 checkpoint = ModelCheckpoint(filepath='./model.h5', monitor='val_loss', save_best_only=True)
-stopper = EarlyStopping(monitor='val_loss', min_delta=0.001, patience=3)
+history = model.fit_generator(train_generator, steps_per_epoch= len(train_samples), \
+        validation_data=validation_generator, validation_steps=len(validation_samples), \
+        callbacks=[checkpoint], epochs=5, verbose = 1)
 
-history = model.fit(X_train, y_train, validation_split=0.2, shuffle=True, nb_epoch=10, 
-          callbacks=[checkpoint])
-
-#model.save('model.h5')
+model.save('model.h5')
 
 # plotting loss and validation loss
 if False:

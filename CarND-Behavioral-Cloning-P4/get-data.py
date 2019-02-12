@@ -1,4 +1,4 @@
-if False:
+if True:
     from google_drive_downloader import GoogleDriveDownloader as gdd
 
     RUN = 2
