@@ -1,0 +1,21 @@
+
+Network: C(6),MP,Dr(0.5) + C(6),MP,Dr(0.5) + D(124) + D(84) + D(1)
+Iteration 1:
+- Image augmentation
+> L,C,R images with 0.2 steering correction
+> FlipLR
+- Adam, LR = 0.001, beta = 0.9
+- Epoch = 10
+(a) Loss = 0.0125
+(b) Validation Loss = 0.0501
+
+Iteration 2:
+- 0.25 steering correction
+(a) Loss = 0.0102
+(b) Validation Loss = 0.0455
+
+Iteration 2:
+- 0.30 steering correction
+(a) Loss = 0.0131
+(b) Validation Loss = 0.0632
+
