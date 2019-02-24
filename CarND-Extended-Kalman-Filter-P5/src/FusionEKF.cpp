@@ -39,6 +39,27 @@ FusionEKF::FusionEKF() {
    * TODO: Set the process and measurement noises
    */
 
+  H_laser_ << 1, 0, 0, 0,
+              0, 1, 0, 0;
+
+  Hj_ << 0, 0, 0, 0,
+         0, 0, 0, 0,
+         0, 0, 0, 0;
+
+  MatrixXd P(4, 4);
+  P <<   1, 0, 0, 0,
+	       0, 1, 0, 0,
+         0, 0, 1000, 0,
+         0, 0, 0, 1000;
+
+  MatrixXd F = MatrixXd::Zero(4, 4);
+
+  VectorXd x(4);
+  x << 1, 1, 1, 1;
+
+  MatrixXd Q = MatrixXd::Zero(4, 4);
+
+  ekf_.Init( x, P, F, H_laser_, R_laser_, R_radar_, Q );
 
 }
 
@@ -80,7 +101,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       VectorXd z = measurement_pack.raw_measurements_;
       ekf_.x_(0) = z(0);
       ekf_.x_(1) = z(1);
+      ekf_.x_(2) = 0;
+      ekf_.x_(3) = 0;
     }
+
+    previous_timestamp_ = measurement_pack.timestamp_;
 
     // done initializing, no need to predict or update
     is_initialized_ = true;
@@ -98,7 +123,29 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
 
+  long long current_time_ = measurement_pack.timestamp_;
+  long long dt = current_time_ - previous_timestamp_;
+
+  ekf_.F_ << 1, 0, dt, 0,
+            0, 1, 0, dt,
+            0, 0, 1, 0,
+            0, 0, 0, 1;
+
+
+  long long dt4 = dt*dt*dt*dt;
+  long long dt3 = dt*dt*dt;
+  long long dt2 = dt*dt;
+  float sx2 = 9;
+  float sy2 = 9;
+
+  ekf_.Q_<< dt4/4*sx2,      0,    dt3/2*sx2,  0,
+            0,    dt4/4*sy2,   0,     dt3/2*sy2,
+            dt3/2*sx2,      0,    dt2*sx2,    0,  
+            0,    dt3/2*sy2,   0,     dt2*sy2;    
+
   ekf_.Predict();
+
+  previous_timestamp_ = current_time_;
 
   /**
    * Update
@@ -112,11 +159,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // TODO: Radar updates
+    VectorXd z = measurement_pack.raw_measurements_;
+    ekf_.UpdateEKF(z);
 
-    //ekf_.UpdateEKF()
 
   } else {
     // TODO: Laser updates
+    VectorXd z = measurement_pack.raw_measurements_;
+    ekf_.Update(z);
 
   }
 
