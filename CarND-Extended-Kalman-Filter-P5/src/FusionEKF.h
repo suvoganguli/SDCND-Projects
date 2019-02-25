@@ -37,6 +37,7 @@ class FusionEKF {
 
   // previous timestamp
   long long previous_timestamp_;
+  long long current_timestamp_;
 
   // tool object used to compute Jacobian and RMSE
   Tools tools;

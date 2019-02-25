@@ -18,6 +18,7 @@ FusionEKF::FusionEKF() {
   is_initialized_ = false;
 
   previous_timestamp_ = 0;
+  current_timestamp_ = previous_timestamp_;
 
   // initializing matrices
   R_laser_ = MatrixXd(2, 2);
@@ -105,7 +106,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       ekf_.x_(3) = 0;
     }
 
-    previous_timestamp_ = measurement_pack.timestamp_;
+    current_timestamp_ = measurement_pack.timestamp_/1e6;
 
     // done initializing, no need to predict or update
     is_initialized_ = true;
@@ -123,8 +124,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
 
-  long long current_time_ = measurement_pack.timestamp_;
-  long long dt = current_time_ - previous_timestamp_;
+  long long dt = current_timestamp_ - previous_timestamp_;
+  previous_timestamp_ = current_timestamp_;
 
   ekf_.F_ << 1, 0, dt, 0,
             0, 1, 0, dt,
@@ -144,8 +145,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             0,    dt3/2*sy2,   0,     dt2*sy2;    
 
   ekf_.Predict();
-
-  previous_timestamp_ = current_time_;
 
   /**
    * Update
@@ -171,6 +170,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   }
 
   // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
+  //cout << "x_ = " << ekf_.x_ << endl;
+  //cout << "P_ = " << ekf_.P_ << endl;
 }
