@@ -31,6 +31,12 @@ class FusionEKF {
    */
   KalmanFilter ekf_;
 
+  // debug
+  int my_count;
+
+  bool DEBUG = 0;
+
+
  private:
   // check whether the tracking toolbox was initialized or not (first measurement)
   bool is_initialized_;
@@ -38,6 +44,7 @@ class FusionEKF {
   // previous timestamp
   long long previous_timestamp_;
   long long current_timestamp_;
+  float dt;
 
   // tool object used to compute Jacobian and RMSE
   Tools tools;

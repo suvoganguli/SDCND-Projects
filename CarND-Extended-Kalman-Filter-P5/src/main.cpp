@@ -31,7 +31,7 @@ string hasData(string s) {
 }
 
 int main() {
-  uWS::Hub h;
+  uWS::Hub h;  
 
   // Create a Kalman Filter instance
   FusionEKF fusionEKF;
@@ -46,7 +46,8 @@ int main() {
                uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
-    // The 2 signifies a websocket event
+    // The 2 signifies a websocket event    
+
     if (length && length > 2 && data[0] == '4' && data[1] == '2') {
       auto s = hasData(string(data));
 
@@ -108,6 +109,10 @@ int main() {
           gt_values(3) = vy_gt;
           ground_truth.push_back(gt_values);
           
+          if (fusionEKF.DEBUG == 1){
+            std::cout << "count = " << fusionEKF.my_count << std::endl;
+          }
+
           // Call ProcessMeasurement(meas_package) for Kalman filter
           fusionEKF.ProcessMeasurement(meas_package);       
 
@@ -127,6 +132,19 @@ int main() {
           estimate(3) = v2;
         
           estimations.push_back(estimate);
+              
+          if (fusionEKF.DEBUG == 1){          
+            std::cout << "gt" << std::endl;
+            std::cout << gt_values << std::endl;
+            std::cout << "estm" << std::endl;
+            std::cout << estimate << std::endl;
+                      
+            if (fusionEKF.my_count > 1){
+              cout << "done" << std::endl;
+              return;
+            }
+            fusionEKF.my_count++;
+          }
 
           VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
 

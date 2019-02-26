@@ -18,7 +18,8 @@ FusionEKF::FusionEKF() {
   is_initialized_ = false;
 
   previous_timestamp_ = 0;
-  current_timestamp_ = previous_timestamp_;
+  current_timestamp_ = 0;
+  dt = 0.0;
 
   // initializing matrices
   R_laser_ = MatrixXd(2, 2);
@@ -50,18 +51,19 @@ FusionEKF::FusionEKF() {
   MatrixXd P(4, 4);
   P <<   1, 0, 0, 0,
 	       0, 1, 0, 0,
-         0, 0, 1000, 0,
-         0, 0, 0, 1000;
+         0, 0, 100, 0,
+         0, 0, 0, 100;
 
-  MatrixXd F = MatrixXd::Zero(4, 4);
+  MatrixXd F = MatrixXd::Identity(4,4);
 
   VectorXd x(4);
-  x << 1, 1, 1, 1;
+  x << 1, 1, 0, 0;
 
   MatrixXd Q = MatrixXd::Zero(4, 4);
 
   ekf_.Init( x, P, F, H_laser_, R_laser_, R_radar_, Q );
 
+  my_count = 0;
 }
 
 /**
@@ -83,7 +85,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     // first measurement
     cout << "EKF: " << endl;
     ekf_.x_ = VectorXd(4);
-    ekf_.x_ << 1, 1, 1, 1;
+    ekf_.x_ << 1, 1, 0, 0;
 
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       // TODO: Convert radar from polar to cartesian coordinates 
@@ -106,7 +108,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       ekf_.x_(3) = 0;
     }
 
-    current_timestamp_ = measurement_pack.timestamp_/1e6;
+    previous_timestamp_ = measurement_pack.timestamp_;
+    std::cout << "prev_t" << std::endl;
+    std::cout << previous_timestamp_ << std::endl;
 
     // done initializing, no need to predict or update
     is_initialized_ = true;
@@ -124,8 +128,18 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
 
-  long long dt = current_timestamp_ - previous_timestamp_;
+  current_timestamp_ = measurement_pack.timestamp_;
+
+  //std::cout << "current_t" << std::endl;
+  //std::cout << current_timestamp_ << std::endl;
+  //std::cout << "prev_t" << std::endl;
+  //std::cout << previous_timestamp_ << std::endl;
+
+  dt = ((double)current_timestamp_ - (double)previous_timestamp_)/1e6;
   previous_timestamp_ = current_timestamp_;
+
+  //std::cout << "dt" << std::endl;
+  //std::cout << dt << std::endl;
 
   ekf_.F_ << 1, 0, dt, 0,
             0, 1, 0, dt,
@@ -133,9 +147,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             0, 0, 0, 1;
 
 
-  long long dt4 = dt*dt*dt*dt;
-  long long dt3 = dt*dt*dt;
-  long long dt2 = dt*dt;
+  double dt4 = dt*dt*dt*dt;
+  double dt3 = dt*dt*dt;
+  double long dt2 = dt*dt;
   float sx2 = 9;
   float sy2 = 9;
 
@@ -144,6 +158,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
             dt3/2*sx2,      0,    dt2*sx2,    0,  
             0,    dt3/2*sy2,   0,     dt2*sy2;    
 
+  std::cout << "ekf - Q" << std::endl;
+  std::cout << ekf_.Q_ << std::endl;
+  
+  
   ekf_.Predict();
 
   /**

@@ -1,5 +1,7 @@
 #include "kalman_filter.h"
 #include "tools.h"
+#include <iostream>
+
 #define PI 3.14159265
 
 using Eigen::MatrixXd;
@@ -24,6 +26,7 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
   R_ = R_in;
   R2_ = R2_in;
   Q_ = Q_in;
+
 }
 
 void KalmanFilter::Predict() {
@@ -34,6 +37,9 @@ void KalmanFilter::Predict() {
     x_ = F_ * x_;
     MatrixXd F_t = F_.transpose();
     P_ = F_ * P_ * F_t + Q_;
+
+    std::cout << "predict - Q" << std::endl;
+    std::cout << Q_ << std::endl;
 
 }
 
@@ -52,6 +58,8 @@ void KalmanFilter::Update(const VectorXd &z) {
 
   x_ = x_ + (K_ * y_);
   P_ = (I_ - K_ * H_) * P_;
+
+  //std::cout << "lidar update complete" << std::endl;
   
 }
 
@@ -80,6 +88,11 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     hx << rho, atan2( py, px ), 0;
   }
 
+  std::cout << "radar-z" << std::endl;
+  std::cout << z << std::endl;
+  std::cout << "radar-hx" << std::endl;
+  std::cout << hx << std::endl;
+
   VectorXd y_ = z - hx;
 
   if( y_[1] > PI )
@@ -91,6 +104,8 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   MatrixXd S_ = Hj_ * P_ * Hj_t + R2_;
   MatrixXd S_i = S_.inverse();
   MatrixXd K_ =  P_ * Hj_t * S_i;
+
+  //std::cout << "radar update complete" << std::endl;  
 
   x_ = x_ + (K_ * y_);
   P_ = (I_ - K_ * Hj_) * P_;
